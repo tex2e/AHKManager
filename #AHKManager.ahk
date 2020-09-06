@@ -29,6 +29,7 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 TargetDir = %A_ScriptDir%
 IniFile = %A_ScriptDir%\.AHKManager.ini
+IniRead, Editor, %IniFile%, core, editor, "notepad.exe"
 
 Shortcuts := Object("F1", "", "F2", "", "F3", "", "F4", "", "F5", "", "F6", "", "F7", "", "F8", "", "F9", "", "F10", "", "F11", "", "F12", "", "^F1", "", "^F2", "", "^F3", "", "^F4", "", "^F5", "", "^F6", "", "^F7", "", "^F8", "", "^F9", "", "^F10", "", "^F11", "", "^F12", "")
 Shortcut2int := Object("", 1, "F1", 2, "F2", 3, "F3", 4, "F4", 5, "F5", 6, "F6", 7, "F7", 8, "F8", 9, "F9", 10, "F10", 11, "F11", 12, "F12", 13, "^F1", 14, "^F2", 15, "^F3", 16, "^F4", 17, "^F5", 18, "^F6", 19, "^F7", 20, "^F8", 21, "^F9", 22, "^F10", 23, "^F11", 24, "^F12", 25)
@@ -132,11 +133,16 @@ MyListView:
     GuiControl, Choose, MyDropDown, % Shortcut2int[Shortcut]
     Return
   }
-  ; 項目ダブルクリック以外のときは何もしない
-  If A_GuiControlEvent <> DoubleClick
+  ; 項目ダブルクリックのときはエディタを開く
+  If A_GuiControlEvent = DoubleClick
+  {
+    LV_GetText(AHKFile, SelectedRow, 1)
+    Run %Editor% %AHKFile%
     Return
-  ; 項目ダブルクリック時の処理
-+F1:: ; Shift+F1押下時もダブルクリックと同様に処理する
+  }
+  Return
+
++F1:: ; Shift+F1押下時の処理
   ; 項目未選択時は何もしない
   If !(SelectedRow := LV_GetNext())
     Return
