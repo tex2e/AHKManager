@@ -94,8 +94,10 @@ LV_LoadShortcuts()
 ;=============================================
 Gui, +AlwaysOnTop +Resize
 Gui, Font, S8, Meiryo
-Gui, Add, Text, w220, Select file and type "Shift + F1”
-Gui, Add, Button, vMyReloadButton gMyReloadButton xm+180 y+-20, Reload
+Gui, Add, Text, w220 y+2, Select file and
+Gui, Add, Text, w220 y+-3, press "Shift+F1”
+Gui, Add, Button, vMyFolderButton gMyFolderButton xm+133 ym+0, Folder
+Gui, Add, Button, vMyReloadButton gMyReloadButton xm+180 y+-27, Reload
 Gui, Add, DropDownList, vMyDropDown gMyDropDown w50 xm+230 y+-26, |F1|F2|F3|F4|F5|F6|F7|F8|F9|F10|F11|F12|^F1|^F2|^F3|^F4|^F5|^F6|^F7|^F8|^F9|^F10|^F11|^F12
 Gui, Add, ListView, vMyListView gMyListView xm-5 y+4 r14 AltSubmit, AHK File                                      |Shortcut
 LV_CreateList()
@@ -109,10 +111,13 @@ Return
 GUISize:
   ; ListViewのサイズ調整
   LV_width  := A_GuiWidth-12
-  LV_height := A_GuiHeight-35
+  LV_height := A_GuiHeight-40
   GuiControl, move, MyListView, w%LV_width% h%LV_height%
+  ; Folderボタンの位置調整
+  FolderButton_x := A_GuiWidth-166
+  GuiControl, move, MyFolderButton, x%FolderButton_x%
   ; Reloadボタンの位置調整
-  ReloadButton_x := A_GuiWidth-106 
+  ReloadButton_x := A_GuiWidth-116
   GuiControl, move, MyReloadButton, x%ReloadButton_x%
   ; DDLの位置調整
   DDL_x := A_GuiWidth-56
@@ -142,17 +147,6 @@ MyListView:
   }
   Return
 
-+F1:: ; Shift+F1押下時の処理
-  ; 項目未選択時は何もしない
-  If !(SelectedRow := LV_GetNext())
-    Return
-  ; AHKファイルの実行
-  LV_GetText(AHKFile, SelectedRow, 1)
-  Run, %TargetDir%\%AHKFile%,, UseErrorLevel
-  If ErrorLevel = ERROR
-    MsgBox Could not launch the specified file.  Perhaps it is not associated with anything.
-  Return
-
 ;---------------------------------------------
 ; ショートカットの設定（ドロップダウンリスト選択時）
 ;---------------------------------------------
@@ -178,21 +172,42 @@ MyDropDown:
   Return
 
 ;---------------------------------------------
+; Folderボタンの処理
+;---------------------------------------------
+MyFolderButton:
+  Run %A_ScriptDir%
+  Return
+
+;---------------------------------------------
 ; Reloadボタンの処理
 ;---------------------------------------------
 MyReloadButton:
-LV_SaveShortcuts()
-LV_Delete()
-LV_CreateList()
-LV_LoadShortcuts()
-Return
+  LV_SaveShortcuts()
+  LV_Delete()
+  LV_CreateList()
+  LV_LoadShortcuts()
+  Return
 
 ;---------------------------------------------
 ; 終了時の処理
 ;---------------------------------------------
 GuiClose:
-LV_SaveShortcuts()
-ExitApp
+  LV_SaveShortcuts()
+  ExitApp
+
+;=============================================
+; Shift+F1押下時の処理
+;=============================================
++F1::
+  ; 項目未選択時は何もしない
+  If !(SelectedRow := LV_GetNext())
+    Return
+  ; AHKファイルの実行
+  LV_GetText(AHKFile, SelectedRow, 1)
+  Run, %TargetDir%\%AHKFile%,, UseErrorLevel
+  If ErrorLevel = ERROR
+    MsgBox Could not launch the specified file.  Perhaps it is not associated with anything.
+  Return
 
 ;=============================================
 ; ショートカット
@@ -210,23 +225,23 @@ $F9::
 $F10::
 $F11::
 $F12::
-StringMid, ThisKey, A_ThisHotKey, 2
-ThisHotKey := ThisKey
-; ショートカット未登録時は、そのままキーを押下
-If (Shortcuts[ThisHotKey] = "") {
-  Send {%ThisKey%}
+  StringMid, ThisKey, A_ThisHotKey, 2
+  ThisHotKey := ThisKey
+  ; ショートカット未登録時は、そのままキーを押下
+  If (Shortcuts[ThisHotKey] = "") {
+    Send {%ThisKey%}
+    Return
+  }
+  ; ファイルが存在しないときも、そのままキーを押下
+  If (!FileExist(Shortcuts[ThisHotKey])) {
+    Send {%ThisKey%}
+    Return
+  }
+  ; AHKファイル実行
+  Run, % TargetDir "\" Shortcuts[ThisHotKey],, UseErrorLevel
+  If ErrorLevel = ERROR
+    MsgBox Could not launch the specified file.  Perhaps it is not associated with anything.
   Return
-}
-; ファイルが存在しないときも、そのままキーを押下
-If (!FileExist(Shortcuts[ThisHotKey])) {
-  Send {%ThisKey%}
-  Return
-}
-; AHKファイル実行
-Run, % TargetDir . "\" . Shortcuts[ThisHotKey],, UseErrorLevel
-If ErrorLevel = ERROR
-  MsgBox Could not launch the specified file.  Perhaps it is not associated with anything.
-Return
 
 ; Ctrl+F1～F12
 $^F1::
@@ -241,23 +256,23 @@ $^F9::
 $^F10::
 $^F11::
 $^F12::
-StringMid, ThisKey, A_ThisHotKey, 3
-StringMid, ThisHotKey, A_ThisHotKey, 2
-; ショートカット未登録時は、そのままキーを押下
-If (Shortcuts[ThisHotKey] = "") {
-  Send ^{%ThisKey%}
+  StringMid, ThisKey, A_ThisHotKey, 3
+  StringMid, ThisHotKey, A_ThisHotKey, 2
+  ; ショートカット未登録時は、そのままキーを押下
+  If (Shortcuts[ThisHotKey] = "") {
+    Send ^{%ThisKey%}
+    Return
+  }
+  ; ファイルが存在しないときも、そのままキーを押下
+  If (!FileExist(Shortcuts[ThisHotKey])) {
+    Send ^{%ThisKey%}
+    Return
+  }
+  ; AHKファイル実行
+  Run, % TargetDir "\" Shortcuts[ThisHotKey],, UseErrorLevel
+  If ErrorLevel = ERROR
+    MsgBox Could not launch the specified file.  Perhaps it is not associated with anything.
   Return
-}
-; ファイルが存在しないときも、そのままキーを押下
-If (!FileExist(Shortcuts[ThisHotKey])) {
-  Send ^{%ThisKey%}
-  Return
-}
-; AHKファイル実行
-Run, % TargetDir . "\" . Shortcuts[ThisHotKey],, UseErrorLevel
-If ErrorLevel = ERROR
-  MsgBox Could not launch the specified file.  Perhaps it is not associated with anything.
-Return
 
 ; Capslock+F1～F12 (Need to change register)
 ~F13 & F1::
@@ -272,23 +287,34 @@ Return
 ~F13 & F10::
 ~F13 & F11::
 ~F13 & F12::
-StringMid, ThisKey, A_ThisHotKey, 8
-ThisHotKey := "^" ThisKey
-; ショートカット未登録時は、そのままキーを押下
-If (Shortcuts[ThisHotKey] = "") {
-  Send ^{%ThisKey%}
+  StringMid, ThisKey, A_ThisHotKey, 8
+  ThisHotKey := "^" ThisKey
+  ; ショートカット未登録時は、そのままキーを押下
+  If (Shortcuts[ThisHotKey] = "") {
+    Send ^{%ThisKey%}
+    Return
+  }
+  ; ファイルが存在しないときも、そのままキーを押下
+  If (!FileExist(Shortcuts[ThisHotKey])) {
+    Send ^{%ThisKey%}
+    Return
+  }
+  ; AHKファイル実行
+  Run, % TargetDir "\" Shortcuts[ThisHotKey],, UseErrorLevel
+  If ErrorLevel = ERROR
+    MsgBox Could not launch the specified file.  Perhaps it is not associated with anything.
   Return
-}
-; ファイルが存在しないときも、そのままキーを押下
-If (!FileExist(Shortcuts[ThisHotKey])) {
-  Send ^{%ThisKey%}
-  Return
-}
-; AHKファイル実行
-Run, % TargetDir . "\" . Shortcuts[ThisHotKey],, UseErrorLevel
-If ErrorLevel = ERROR
-  MsgBox Could not launch the specified file.  Perhaps it is not associated with anything.
-Return
+
+;=============================================
+; Ctrl+Sの処理
+;=============================================
+#IfWinActive ahk_class AutoHotkeyGUI
+F13 & s::
+^s::
+  ; 設定したショートカットの保存
+  LV_SaveShortcuts()
+  return
+#IfWinActive
 
 
 ; 再起動
