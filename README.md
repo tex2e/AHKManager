@@ -1,13 +1,14 @@
-# AHKManager
-Manage AHK Script Shortcuts
+# AHK Manager
+
+AHK Manager is useful for cases in which changing the shortcut assignment without modifying the AHK file.
 
 ![screenshot](doc/img/screenshot.png)
-
 
 ## Features
 
 - Shortcuts to AHK file can be configured on screen.
 - Shortcuts that can be assinged are F1 to F12, Ctrl+F1 to Ctrl+F12.
+- Shortcuts are only available when AHK Manager is launched.
 - You can also type Shift+F1 to execute AHK file instead of setting a shortcut.
 - You can edit the file by double-clicking on it.
 
