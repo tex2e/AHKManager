@@ -20,6 +20,14 @@ Manage AHK Script Shortcuts
 5. Select the AHK file from the list and set up a shortcut.
 6. Focus on another window, and then press the shortcut.
 
+### GUI
+
+- Folder Button : Open the same folder as the #AHKManager.ahk
+- Reload Button : Update the file list.
+- Dropdown List : Set a shortcut.
+- Double-click Item in List : Edit the selected file.
+
+
 ## Settings
 
 All settings are written in the .AHKManager.ini file.
